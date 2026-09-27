@@ -1,5 +1,6 @@
 package com.weatherapp.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,10 +15,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import com.weatherapp.model.MainViewModel
 import com.weatherapp.ui.theme.WeatherAppTheme
 
 @Composable
-fun MapPage(modifier: Modifier = Modifier) {
+fun MapPage(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -35,10 +40,11 @@ fun MapPage(modifier: Modifier = Modifier) {
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun MapPagePreview() {
     WeatherAppTheme {
-        MapPage()
+        MapPage(viewModel = MainViewModel())
     }
 }
