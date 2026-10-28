@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.weatherapp-mergeDebugResources-40:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\jhonn\\.gradle\\caches\\9.6.0\\transforms\\a921d7549a115895abd1b9e657fd6c39\\transformed\\material3\\res\\values-v30\\values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "72",
+                        "endOffsets": "123"
+                    }
+                }
+            ]
+        }
+    ]
+}
