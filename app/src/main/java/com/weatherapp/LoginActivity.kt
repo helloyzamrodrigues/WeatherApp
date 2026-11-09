@@ -88,7 +88,8 @@ fun LoginPage(modifier: Modifier = Modifier) {
                     if (task.isSuccessful) {
                         Toast.makeText(activity, "Login OK!", Toast.LENGTH_LONG).show()
                     } else {
-                        Toast.makeText(activity, "Login FALHOU!", Toast.LENGTH_LONG).show()
+                        val errorMsg = task.exception?.localizedMessage ?: "Login FALHOU!"
+                        Toast.makeText(activity, "Login FALHOU: $errorMsg", Toast.LENGTH_LONG).show()
                     }
                 }
             }) {

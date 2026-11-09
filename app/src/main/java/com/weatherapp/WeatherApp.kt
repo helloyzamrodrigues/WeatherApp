@@ -14,9 +14,19 @@ class WeatherApp : Application() {
             FLAG_ACTIVITY_CLEAR_TASK        // Limpa o backstack
     override fun onCreate() {
         super.onCreate()
-        Firebase.auth.addAuthStateListener { firebaseAuth ->
-            if (firebaseAuth.currentUser != null) {  goToMain()
-            } else {  goToLogin()  }
+        try {
+            if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
+                com.google.firebase.FirebaseApp.initializeApp(this)
+            }
+            Firebase.auth.addAuthStateListener { firebaseAuth ->
+                if (firebaseAuth.currentUser != null) {
+                    goToMain()
+                } else {
+                    goToLogin()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
     private fun goToMain() {
