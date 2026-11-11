@@ -46,8 +46,11 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
 dependencies {
     implementation("androidx.navigation:navigation-compose:2.10.1")
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.googleid)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
