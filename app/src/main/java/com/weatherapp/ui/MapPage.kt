@@ -29,6 +29,7 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.weatherapp.db.fb.FBDatabase
 import com.weatherapp.model.MainViewModel
 import com.weatherapp.ui.theme.WeatherAppTheme
 
@@ -94,6 +95,6 @@ fun MapPage(
 @Composable
 fun MapPagePreview() {
     WeatherAppTheme {
-        MapPage(viewModel = MainViewModel())
+        MapPage(viewModel = MainViewModel(FBDatabase()))
     }
 }

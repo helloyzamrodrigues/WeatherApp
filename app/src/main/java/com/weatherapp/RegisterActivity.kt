@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.weatherapp.db.fb.FBDatabase
+import com.weatherapp.db.fb.FBUser
 import com.weatherapp.ui.theme.WeatherAppTheme
 
 class RegisterActivity : ComponentActivity() {
@@ -106,21 +108,28 @@ fun RegisterPage(modifier: Modifier = Modifier) {
         ) {
             Button(
                 onClick = {
-                    Firebase.auth.createUserWithEmailAndPassword(email, password)
+                    if (email.isBlank() || password.isBlank() || name.isBlank()) {
+                        Toast.makeText(activity, "Preencha todos os campos!", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (password != confirmPassword) {
+                        Toast.makeText(activity, "As senhas não coincidem!", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    Firebase.auth.createUserWithEmailAndPassword(email.trim(), password)
                         .addOnCompleteListener(activity) { task ->
                             if (task.isSuccessful) {
+                                val fbUser = FBUser().apply {
+                                    this.name = name
+                                    this.email = email.trim()
+                                }
+                                FBDatabase().register(fbUser)
                                 Toast.makeText(activity, "Registro OK!", Toast.LENGTH_LONG).show()
                             } else {
-                                val errorMsg = task.exception?.localizedMessage ?: "Registro FALHOU!"
-                                Toast.makeText(activity, "Registro FALHOU: $errorMsg", Toast.LENGTH_LONG).show()
+                                Toast.makeText(activity, "Registro FALHOU!", Toast.LENGTH_LONG).show()
                             }
                         }
-                },
-                enabled = name.isNotEmpty() &&
-                        email.isNotEmpty() &&
-                        password.isNotEmpty() &&
-                        confirmPassword.isNotEmpty() &&
-                        (password == confirmPassword)
+                }
             ) {
                 Text("Registrar")
             }
@@ -131,8 +140,7 @@ fun RegisterPage(modifier: Modifier = Modifier) {
                     email = ""
                     password = ""
                     confirmPassword = ""
-                },
-                enabled = name.isNotEmpty() || email.isNotEmpty() || password.isNotEmpty() || confirmPassword.isNotEmpty()
+                }
             ) {
                 Text("Limpar")
             }

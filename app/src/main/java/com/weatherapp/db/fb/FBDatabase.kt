@@ -21,6 +21,10 @@ class FBDatabase {
     private var citiesListReg: ListenerRegistration? = null
     private var listener: Listener? = null
 
+    fun setListener(listener: Listener) {
+        this.listener = listener
+    }
+
     init {
         auth.addAuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -28,14 +32,23 @@ class FBDatabase {
                 listener?.onUserSignOut()
                 return@addAuthStateListener
             }
-
             val refCurrUser = db.collection("users").document(auth.currentUser!!.uid)
-            refCurrUser.get().addOnSuccessListener {
-                it.toObject(FBUser::class.java)?.let { user ->
-                    listener?.onUserLoaded(user)
+            refCurrUser.get().addOnSuccessListener { snapshot ->
+                val fbUser = snapshot.toObject(FBUser::class.java)
+                if (fbUser != null && (!fbUser.name.isNullOrBlank() || !fbUser.email.isNullOrBlank())) {
+                    listener?.onUserLoaded(fbUser)
+                } else {
+                    val currentUser = auth.currentUser
+                    if (currentUser != null) {
+                        val newUser = FBUser().apply {
+                            this.name = currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: ""
+                            this.email = currentUser.email ?: ""
+                        }
+                        refCurrUser.set(newUser)
+                        listener?.onUserLoaded(newUser)
+                    }
                 }
             }
-
             citiesListReg = refCurrUser.collection("cities")
                 .addSnapshotListener { snapshots, ex ->
                     if (ex != null) return@addSnapshotListener
@@ -60,15 +73,15 @@ class FBDatabase {
     }
 
     fun add(city: FBCity) {
-        if (auth.currentUser == null) throw RuntimeException("Usuario não logado!")
-        if (city.name == null) throw RuntimeException("Nome da cidade não pode ser vazio!")
+        if (auth.currentUser == null) return
+        if (city.name == null) return
         val uid = auth.currentUser!!.uid
         db.collection("users").document(uid).collection("cities").document(city.name!!).set(city)
     }
 
     fun remove(city: FBCity) {
-        if (auth.currentUser == null) throw RuntimeException("Usuario não logado!")
-        if (city.name == null) throw RuntimeException("Nome da cidade não pode ser vazio!")
+        if (auth.currentUser == null) return
+        if (city.name == null) return
         val uid = auth.currentUser!!.uid
         db.collection("users").document(uid).collection("cities").document(city.name!!).delete()
     }
