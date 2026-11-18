@@ -23,53 +23,60 @@ class FBDatabase {
 
     fun setListener(listener: Listener) {
         this.listener = listener
+        startListening()
     }
 
     init {
         auth.addAuthStateListener { auth ->
             if (auth.currentUser == null) {
                 citiesListReg?.remove()
+                citiesListReg = null
                 listener?.onUserSignOut()
-                return@addAuthStateListener
+            } else {
+                startListening()
             }
-            val refCurrUser = db.collection("users").document(auth.currentUser!!.uid)
-            refCurrUser.get().addOnSuccessListener { snapshot ->
-                val fbUser = snapshot.toObject(FBUser::class.java)
-                if (fbUser != null && (!fbUser.name.isNullOrBlank() || !fbUser.email.isNullOrBlank())) {
-                    listener?.onUserLoaded(fbUser)
-                } else {
-                    val currentUser = auth.currentUser
-                    if (currentUser != null) {
-                        val newUser = FBUser().apply {
-                            this.name = currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: ""
-                            this.email = currentUser.email ?: ""
-                        }
-                        refCurrUser.set(newUser)
-                        listener?.onUserLoaded(newUser)
-                    }
-                }
-            }
-            citiesListReg = refCurrUser.collection("cities")
-                .addSnapshotListener { snapshots, ex ->
-                    if (ex != null) return@addSnapshotListener
-                    snapshots?.documentChanges?.forEach { change ->
-                        val fbCity = change.document.toObject(FBCity::class.java)
-                        if (change.type == DocumentChange.Type.ADDED) {
-                            listener?.onCityAdded(fbCity)
-                        } else if (change.type == DocumentChange.Type.MODIFIED) {
-                            listener?.onCityUpdated(fbCity)
-                        } else if (change.type == DocumentChange.Type.REMOVED) {
-                            listener?.onCityRemoved(fbCity)
-                        }
-                    }
-                }
         }
     }
 
+    private fun startListening() {
+        val currentUser = auth.currentUser ?: return
+        val currentListener = listener ?: return
+
+        citiesListReg?.remove()
+
+        val refCurrUser = db.collection("users").document(currentUser.uid)
+        refCurrUser.get().addOnSuccessListener { snapshot ->
+            val fbUser = snapshot.toObject(FBUser::class.java)
+            if (fbUser != null && (!fbUser.name.isNullOrBlank() || !fbUser.email.isNullOrBlank())) {
+                currentListener.onUserLoaded(fbUser)
+            } else {
+                val newUser = FBUser().apply {
+                    this.name = currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: ""
+                    this.email = currentUser.email ?: ""
+                }
+                refCurrUser.set(newUser)
+                currentListener.onUserLoaded(newUser)
+            }
+        }
+
+        citiesListReg = refCurrUser.collection("cities")
+            .addSnapshotListener { snapshots, ex ->
+                if (ex != null) return@addSnapshotListener
+                snapshots?.documentChanges?.forEach { change ->
+                    val fbCity = change.document.toObject(FBCity::class.java)
+                    when (change.type) {
+                        DocumentChange.Type.ADDED -> listener?.onCityAdded(fbCity)
+                        DocumentChange.Type.MODIFIED -> listener?.onCityUpdated(fbCity)
+                        DocumentChange.Type.REMOVED -> listener?.onCityRemoved(fbCity)
+                    }
+                }
+            }
+    }
+
     fun register(user: FBUser) {
-        if (auth.currentUser == null) throw RuntimeException("Usuário não logado!")
+        if (auth.currentUser == null) return
         val uid = auth.currentUser!!.uid
-        db.collection("users").document(uid + "").set(user)
+        db.collection("users").document(uid).set(user)
     }
 
     fun add(city: FBCity) {
